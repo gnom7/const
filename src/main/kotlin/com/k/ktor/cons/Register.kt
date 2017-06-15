@@ -11,7 +11,7 @@ import org.jetbrains.ktor.routing.Route
 import org.jetbrains.ktor.routing.application
 import org.jetbrains.ktor.sessions.sessionOrNull
 
-fun Route.register(repo: UserRepository = UserRepository(), hashFunction: (String) -> String) {
+fun Route.register(repo: UserRepository, hashFunction: (String) -> String) {
     post<Register> {
         val user = call.sessionOrNull<Session>()?.let { repo.findOne(it.id) }
         if (user != null) {

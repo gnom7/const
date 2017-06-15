@@ -2,27 +2,30 @@ package com.k.ktor.cons.dao
 
 import com.k.ktor.cons.model.User
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils.create
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
 
 object Users : Table() {
     val id = long("id").primaryKey()
-    val username = varchar("username", 32)
+    val username = varchar("username", 32).uniqueIndex()
     val email = varchar("email", 128).uniqueIndex()
-    val displayName = varchar("display_name", 256)
+    val displayName = varchar("display_name", 32).uniqueIndex()
     val passwordHash = varchar("password_hash", 64)
 }
 
-class UserRepository(val db: Database = Database.connect("jdbc:h2:mem:constructor", driver = "org.h2.Driver")) {
+class UserRepository {
 
     init {
-        db.transaction {
-            Users
+        transaction {
+            create(Users)
         }
     }
 
-    fun saveUser(user: User) = db.transaction {
+    fun saveUser(user: User) = transaction {
         Users.insert {
             it[Users.id] = user.id
             it[Users.username] = user.username
@@ -32,7 +35,7 @@ class UserRepository(val db: Database = Database.connect("jdbc:h2:mem:constructo
         }
     }
 
-    fun findOne(id: Long, hash: String? = null) = db.transaction {
+    fun findOne(id: Long, hash: String? = null) = transaction {
         Users.select { Users.id.eq(id) }
                 .mapNotNull {
                     if (hash == null || it[Users.passwordHash] == hash) {
@@ -44,8 +47,16 @@ class UserRepository(val db: Database = Database.connect("jdbc:h2:mem:constructo
                 .singleOrNull()
     }
 
-    fun findByEmail(email: String) = db.transaction {
+    fun findByEmail(email: String) = transaction {
         Users.select { Users.email.eq(email) }.singleOrNull()
+    }
+
+    fun findByUsernameAndPasswordHash(username: String, passwordHash: String) = transaction {
+        Users.select {
+            Users.username.eq(username).and(Users.passwordHash.eq(passwordHash))
+        }
+                .mapNotNull { User(it[Users.id], it[Users.username], it[Users.email], it[Users.displayName], it[Users.passwordHash]) }
+                .singleOrNull()
     }
 
 }
