@@ -137,6 +137,13 @@
     </repositories>
 
     <build>
+        <sourceDirectory>src/main/kotlin</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+        <testSourceDirectory>src/test/kotlin</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
@@ -146,7 +153,7 @@
                     <jvmTarget>${jvm.target}</jvmTarget>
                     <args>
                         <arg>-Xcoroutines=enable</arg>
-                        <arg>-Dkotlinx.coroutines.debug</arg>
+                        <!--<arg>-Dkotlinx.coroutines.debug</arg>-->
                     </args>
                 </configuration>
                 <executions>
@@ -199,7 +206,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.k.ktor.cons.MainKt</mainClass>
+                            <mainClass>org.jetbrains.ktor.tomcat.DevelopmentHost</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
