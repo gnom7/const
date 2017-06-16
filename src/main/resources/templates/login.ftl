@@ -13,7 +13,7 @@
         <legend>Sign in</legend>
 
         <label for="username">Login</label>
-        <input type="text" name="username" id="username" value="${pageUser.username}">
+        <input type="text" name="username" id="username" value="<#if pageUser??>${pageUser.username}</#if>">
 
         <label for="password">Password</label>
         <input type="password" name="password" id="password">

@@ -35,23 +35,24 @@ import org.jetbrains.ktor.sessions.withCookieByValue
 import org.jetbrains.ktor.sessions.withSessions
 import org.jetbrains.ktor.util.hex
 import org.mindrot.jbcrypt.BCrypt
+import java.io.File
 
 @location("/home")
 class Index()
 
 @location("/register")
-data class Register(val id: Long = -1, val username: String = "", val displayName: String = "", val email: String = "", val password: String = "", val error: String = "")
+data class Register(val username: String = "", val displayName: String = "", val email: String = "", val password: String = "", val error: String = "")
 
 @location("/login")
 data class Login(val username: String = "", val password: String = "", val error: String = "")
 
-data class Session(val id: Long)
+data class Session(val id: Int)
 
 val config: Config = ConfigFactory.load()
-val db: Database = Database.connect("jdbc:h2:mem:constructor", driver = "org.h2.Driver")
 
 fun Application.main() {
-    Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver")
+    val dbFilePath = File("target/db").absolutePath//.let { File("$it.mv.db").delete(); it }
+    Database.connect("jdbc:h2:file:$dbFilePath", driver = "org.h2.Driver")
 
     install(DefaultHeaders)
     install(CallLogging)
@@ -87,7 +88,7 @@ fun Application.main() {
         webjars()
         index()
         register(userRepo, { s: String -> hash(s) })
-        login(userRepo, { s: String -> hash(s) })
+        login(userRepo, { row: String, hash: String -> checkHash(row, hash) })
 
         get("/") {
             call.respondText("Hey")
@@ -97,6 +98,10 @@ fun Application.main() {
 
 fun hash(password: String): String {
     return BCrypt.hashpw(password, BCrypt.gensalt())
+}
+
+fun checkHash(row: String, hash: String): Boolean {
+    return BCrypt.checkpw(row, hash)
 }
 
 suspend fun ApplicationCall.redirect(location: Any) {

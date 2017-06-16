@@ -17,12 +17,12 @@ fun Route.register(repo: UserRepository, hashFunction: (String) -> String) {
         if (user != null) {
             call.redirect("/")
         } else {
-            val newUser = User(it.id, it.username, it.email, it.displayName, hashFunction(it.password))
+            val newUser = User(null, it.username, it.email, it.displayName, hashFunction(it.password))
 
             try {
                 repo.saveUser(newUser)
             } catch (e: Exception) {
-                if (repo.findOne(it.id) != null) {
+                if (repo.findByUsername(it.username) != null) {
                     call.redirect(it.copy(error = "User with the following login is already registered", password = ""))
                 } else if (repo.findByEmail(it.email) != null) {
                     call.redirect(it.copy(error = "User with the following email ${it.email} is already registered", password = ""))
@@ -40,7 +40,7 @@ fun Route.register(repo: UserRepository, hashFunction: (String) -> String) {
             //TODO redirect to user's page
             call.redirect("/")
         } else {
-            call.respond(FreeMarkerContent("register.ftl", mapOf("pageUser" to User(it.id, it.username, it.email, it.displayName, ""), "error" to it.error), ""))
+            call.respond(FreeMarkerContent("register.ftl", mapOf("pageUser" to User(null, it.username, it.email, it.displayName, ""), "error" to it.error), ""))
         }
     }
 }
